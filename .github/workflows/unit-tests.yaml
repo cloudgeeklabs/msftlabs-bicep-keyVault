@@ -1,0 +1,109 @@
+name: Unit Tests (Pester)
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - '**.bicep'
+      - 'tests/**'
+      - '.github/workflows/unit-tests.yaml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - '**.bicep'
+      - 'tests/**'
+  workflow_dispatch:
+
+jobs:
+  pester-tests:
+    name: Run Pester Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          Install-Module -Name Pester -Force -SkipPublisherCheck -MinimumVersion 5.0.0
+          Import-Module Pester -MinimumVersion 5.0.0
+          Get-Module Pester
+      
+      - name: Run Pester Tests
+        shell: pwsh
+        run: |
+          $config = New-PesterConfiguration
+          $config.Run.Path = './tests'
+          $config.Run.Exit = $false
+          $config.Run.PassThru = $true
+          $config.TestResult.Enabled = $true
+          $config.TestResult.OutputPath = './test-results.xml'
+          $config.TestResult.OutputFormat = 'NUnitXml'
+          $config.Output.Verbosity = 'Detailed'
+          $config.Output.CIFormat = 'GithubActions'
+          
+          Write-Host "Starting Pester tests..." -ForegroundColor Cyan
+          $result = Invoke-Pester -Configuration $config
+          
+          [Console]::Out.Flush()
+          
+          Write-Host "`n========================================" -ForegroundColor Cyan
+          Write-Host "PESTER TEST SUMMARY" -ForegroundColor Cyan
+          Write-Host "========================================" -ForegroundColor Cyan
+          Write-Host "Total Tests: $($result.TotalCount)" -ForegroundColor White
+          Write-Host "Passed: $($result.PassedCount)" -ForegroundColor Green
+          Write-Host "Failed: $($result.FailedCount)" -ForegroundColor $(if ($result.FailedCount -gt 0) { 'Red' } else { 'Green' })
+          Write-Host "Skipped: $($result.SkippedCount)" -ForegroundColor Yellow
+          Write-Host "Duration: $($result.Duration)" -ForegroundColor Gray
+          Write-Host "========================================`n" -ForegroundColor Cyan
+          
+          if ($result.FailedCount -gt 0) {
+            Write-Host "Tests FAILED" -ForegroundColor Red
+            exit 1
+          } else {
+            Write-Host "All tests PASSED" -ForegroundColor Green
+          }
+      
+      - name: Test Summary
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path test-results.xml) {
+            Write-Host "Parsing test results..." -ForegroundColor Cyan
+            
+            [xml]$testResults = Get-Content test-results.xml
+            $rootElement = $testResults.'test-results'
+            
+            if ($rootElement) {
+              $totalTests = $rootElement.total
+              $failures = $rootElement.failures
+              $errors = $rootElement.errors
+              $skipped = $rootElement.skipped
+              
+              $passed = [int]$totalTests - [int]$failures - [int]$errors - [int]$skipped
+              
+              Write-Host "Total: $totalTests, Passed: $passed, Failed: $failures, Errors: $errors" -ForegroundColor White
+              
+              $summary = @"
+          ### Pester Test Results
+          
+          | Metric | Count |
+          |--------|-------|
+          | **Total Tests** | $totalTests |
+          | **Passed** | $passed |
+          | **Failed** | $failures |
+          | **Errors** | $errors |
+          | **Skipped** | $skipped |
+          | **Status** | $(if ([int]$failures -eq 0 -and [int]$errors -eq 0) { 'PASSED' } else { 'FAILED' }) |
+          "@
+              
+              $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+            }
+          } else {
+            Write-Host "ERROR: test-results.xml file not found" -ForegroundColor Red
+          }

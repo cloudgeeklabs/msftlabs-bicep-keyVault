@@ -1,0 +1,58 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workloadName": {
+      "value": "ghtest"
+    },
+    "location": {
+      "value": "centralus"
+    },
+    "environment": {
+      "value": "dev"
+    },
+    "skuName": {
+      "value": "standard"
+    },
+    "enabledForDeployment": {
+      "value": false
+    },
+    "enabledForDiskEncryption": {
+      "value": false
+    },
+    "enabledForTemplateDeployment": {
+      "value": false
+    },
+    "softDeleteRetentionInDays": {
+      "value": 90
+    },
+    "enablePurgeProtection": {
+      "value": true
+    },
+    "enableRbacAuthorization": {
+      "value": true
+    },
+    "publicNetworkAccess": {
+      "value": "Disabled"
+    },
+    "allowTrustedMicrosoftServices": {
+      "value": false
+    },
+    "enableDiagnostics": {
+      "value": true
+    },
+    "enableLock": {
+      "value": true
+    },
+    "lockLevel": {
+      "value": "CanNotDelete"
+    },
+    "tags": {
+      "value": {
+        "Environment": "Test",
+        "ManagedBy": "Pester",
+        "Purpose": "ModuleTesting"
+      }
+    }
+  }
+}

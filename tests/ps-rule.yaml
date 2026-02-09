@@ -1,0 +1,32 @@
+# PSRule configuration for Bicep module validation
+# https://azure.github.io/PSRule.Rules.Azure/
+
+binding:
+  targetType:
+    - bicep
+
+configuration:
+  AZURE_BICEP_FILE_EXPANSION: true
+  AZURE_PARAMETER_FILE_EXPANSION: true
+
+rule:
+  include:
+    - Azure.KeyVault.SoftDelete
+    - Azure.KeyVault.PurgeProtect
+    - Azure.KeyVault.Logs
+    - Azure.KeyVault.AccessPolicy
+    - Azure.RBAC.UseGroups
+    - Azure.Resource.UseTags
+
+  exclude:
+    - Azure.KeyVault.Firewall
+
+output:
+  culture:
+    - en-US
+  format: Json
+  outcome: Fail
+
+suppression:
+  Azure.KeyVault.Name:
+    reason: Test Key Vault names may not follow production naming
