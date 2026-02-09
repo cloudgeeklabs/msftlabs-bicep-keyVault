@@ -33,19 +33,16 @@
       "value": true
     },
     "publicNetworkAccess": {
-      "value": "Disabled"
+      "value": "Enabled"
     },
     "allowTrustedMicrosoftServices": {
       "value": false
     },
     "enableDiagnostics": {
-      "value": true
+      "value": false
     },
     "enableLock": {
-      "value": true
-    },
-    "lockLevel": {
-      "value": "CanNotDelete"
+      "value": false
     },
     "tags": {
       "value": {
